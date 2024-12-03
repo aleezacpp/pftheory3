@@ -1,0 +1,216 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void addSupplies(char **speciesSupplies, int speciesIndex, int *supplyCounts);
+void updateSupply(char **speciesSupplies, int speciesIndex, int supplyCount);
+void removeSpecies(char ***speciesSupplies, int *speciesCount, int *supplyCounts, int speciesIndex);
+void displayInventory(char **speciesSupplies, int speciesCount, int *supplyCounts);
+void saveInventory(char **speciesSupplies, int speciesCount, int *supplyCounts);
+void loadInventory(char ***speciesSupplies, int *speciesCount, int **supplyCounts);
+
+int main() {
+    char **speciesSupplies = NULL; 
+    int *supplyCounts = NULL;      
+    int speciesCount = 0;        
+    int choice, speciesIndex;
+
+    printf("Welcome to Pets in Heart Inventory System!\n");
+    printf("Do you want to load an existing inventory or initialize a new one?\n");
+    printf("1. Load Existing Inventory\n");
+    printf("2. Initialize New Inventory\n");
+    printf("Enter your choice: ");
+    scanf("%d", &choice);
+    getchar();
+    if (choice == 1) {
+       
+        loadInventory(&speciesSupplies, &speciesCount, &supplyCounts);
+    } else if (choice == 2) {
+        // Initialize a new inventory
+        printf("Enter the number of species: ");
+        scanf("%d", &speciesCount);
+        getchar(); // Clear newline from input buffer
+
+        // Allocate memory for species and supply counts
+        speciesSupplies = (char **)malloc(speciesCount * sizeof(char *));
+        supplyCounts = (int *)calloc(speciesCount, sizeof(int));
+        for (int i = 0; i < speciesCount; i++) {
+            speciesSupplies[i] = NULL; // No supplies initially
+        }
+
+        printf("New inventory initialized with %d species.\n", speciesCount);
+    } else {
+        printf("Invalid choice. Exiting...\n");
+        return 0;
+    }
+
+    // Main menu loop
+    while (1) {
+        printf("\n--- Pets in Heart Inventory System ---\n");
+        printf("1. Add Supplies\n");
+        printf("2. Update Supplies\n");
+        printf("3. Remove Species\n");
+        printf("4. Display Inventory\n");
+        printf("5. Save and Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        getchar(); // Clear newline from input buffer
+
+        switch (choice) {
+            case 1:
+                printf("Enter species index to add supplies (0 to %d): ", speciesCount - 1);
+                scanf("%d", &speciesIndex);
+                getchar();
+                if (speciesIndex >= 0 && speciesIndex < speciesCount) {
+                    addSupplies(speciesSupplies, speciesIndex, supplyCounts);
+                } else {
+                    printf("Invalid species index!\n");
+                }
+                break;
+            case 2:
+                printf("Enter species index to update supplies (0 to %d): ", speciesCount - 1);
+                scanf("%d", &speciesIndex);
+                getchar();
+                if (speciesIndex >= 0 && speciesIndex < speciesCount) {
+                    updateSupply(speciesSupplies, speciesIndex, supplyCounts[speciesIndex]);
+                } else {
+                    printf("Invalid species index!\n");
+                }
+                break;
+            case 3:
+                printf("Enter species index to remove (0 to %d): ", speciesCount - 1);
+                scanf("%d", &speciesIndex);
+                getchar();
+                if (speciesIndex >= 0 && speciesIndex < speciesCount) {
+                    removeSpecies(&speciesSupplies, &speciesCount, supplyCounts, speciesIndex);
+                } else {
+                    printf("Invalid species index!\n");
+                }
+                break;
+            case 4:
+                displayInventory(speciesSupplies, speciesCount, supplyCounts);
+                break;
+            case 5:
+                saveInventory(speciesSupplies, speciesCount, supplyCounts);
+                // Free memory
+                for (int i = 0; i < speciesCount; i++) {
+                    free(speciesSupplies[i]);
+                }
+                free(speciesSupplies);
+                free(supplyCounts);
+                printf("Exiting...\n");
+                return 0;
+            default:
+                printf("Invalid choice! Try again.\n");
+        }
+    }
+}
+
+// Function implementations (unchanged):
+// Add Supplies
+void addSupplies(char **speciesSupplies, int speciesIndex, int *supplyCounts) {
+    int newSupplyCount;
+    printf("Enter the number of new supplies to add: ");
+    scanf("%d", &newSupplyCount);
+    getchar();
+
+    speciesSupplies[speciesIndex] = realloc(speciesSupplies[speciesIndex],
+                                            (supplyCounts[speciesIndex] + newSupplyCount) * 100 * sizeof(char));
+    if (!speciesSupplies[speciesIndex]) {
+        printf("Memory allocation failed!\n");
+        return;
+    }
+
+    printf("Enter the new supplies (one per line):\n");
+    for (int i = 0; i < newSupplyCount; i++) {
+        fgets(speciesSupplies[speciesIndex] + (supplyCounts[speciesIndex] + i) * 100, 100, stdin);
+        speciesSupplies[speciesIndex][(supplyCounts[speciesIndex] + i) * 100 + strcspn(speciesSupplies[speciesIndex] + (supplyCounts[speciesIndex] + i) * 100, "\n")] = '\0'; // Remove newline
+    }
+    supplyCounts[speciesIndex] += newSupplyCount;
+    printf("Supplies added.\n");
+}
+
+// Update Supplies
+void updateSupply(char **speciesSupplies, int speciesIndex, int supplyCount) {
+    int supplyIndex;
+    printf("Enter the supply index to update (0 to %d): ", supplyCount - 1);
+    scanf("%d", &supplyIndex);
+    getchar();
+
+    if (supplyIndex >= 0 && supplyIndex < supplyCount) {
+        printf("Enter the new name for the supply: ");
+        fgets(speciesSupplies[speciesIndex] + supplyIndex * 100, 100, stdin);
+        speciesSupplies[speciesIndex][supplyIndex * 100 + strcspn(speciesSupplies[speciesIndex] + supplyIndex * 100, "\n")] = '\0'; // Remove newline
+        printf("Supply updated.\n");
+    } else {
+        printf("Invalid supply index!\n");
+    }
+}
+
+// Remove Species
+void removeSpecies(char ***speciesSupplies, int *speciesCount, int *supplyCounts, int speciesIndex) {
+    free((*speciesSupplies)[speciesIndex]);
+    for (int i = speciesIndex; i < *speciesCount - 1; i++) {
+        (*speciesSupplies)[i] = (*speciesSupplies)[i + 1];
+        supplyCounts[i] = supplyCounts[i + 1];
+    }
+    (*speciesCount)--;
+    *speciesSupplies = realloc(*speciesSupplies, (*speciesCount) * sizeof(char *));
+    printf("Species removed from inventory.\n");
+}
+
+// Display Inventory
+void displayInventory(char **speciesSupplies, int speciesCount, int *supplyCounts) {
+    printf("\n--- Current Inventory ---\n");
+    for (int i = 0; i < speciesCount; i++) {
+        printf("Species %d:\n", i);
+        for (int j = 0; j < supplyCounts[i]; j++) {
+            printf("  %s\n", speciesSupplies[i] + j * 100);
+        }
+    }
+}
+
+// Save Inventory to File
+void saveInventory(char **speciesSupplies, int speciesCount, int *supplyCounts) {
+    FILE *file = fopen("inventory.txt", "w");
+    if (!file) {
+        printf("Error saving inventory to file!\n");
+        return;
+    }
+
+    fprintf(file, "%d\n", speciesCount);
+    for (int i = 0; i < speciesCount; i++) {
+        fprintf(file, "%d\n", supplyCounts[i]);
+        for (int j = 0; j < supplyCounts[i]; j++) {
+            fprintf(file, "%s\n", speciesSupplies[i] + j * 100);
+        }
+    }
+
+    fclose(file);
+    printf("Inventory saved to file.\n");
+}
+
+// Load Inventory from File
+void loadInventory(char ***speciesSupplies, int *speciesCount, int **supplyCounts) {
+    FILE *file = fopen("inventory.txt", "r");
+    if (!file) {
+        printf("No existing inventory found. Starting fresh.\n");
+        return;
+    }
+
+    fscanf(file, "%d\n", speciesCount);
+    *speciesSupplies = malloc(*speciesCount * sizeof(char *));
+    *supplyCounts = malloc(*speciesCount * sizeof(int));
+
+    for (int i = 0; i < *speciesCount; i++) {
+        fscanf(file, "%d\n", &((*supplyCounts)[i]));
+        (*speciesSupplies)[i] = malloc((*supplyCounts)[i] * 100 * sizeof(char));
+        for (int j = 0; j < (*supplyCounts)[i]; j++) {
+            fgets((*speciesSupplies)[i] + j * 100, 100, file);
+            (*speciesSupplies)[i][j * 100 + strcspn((*speciesSupplies)[i] + j * 100, "\n")] = '\0'; // Remove newline
+        }
+    }
+
+    fclose(file);
+    printf("Inventory loaded from file.\n");
+}
