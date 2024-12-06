@@ -1,0 +1,103 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct WeatherForecast {
+    float temperature;
+    float rainfall;
+    float windSpeed;
+};
+
+struct Crop {
+    char type[50];
+    char growthStage[50];
+    float expectedYield;
+    struct WeatherForecast *weather;
+};
+
+struct Equipment {
+    char name[50];
+    int operationalStatus;
+    float fuelLevel;
+    char activitySchedule[100];
+};
+
+struct Sensor {
+    float soilNutrients;
+    float pHLevel;
+    int pestActivity;
+};
+
+struct Field {
+    float gpsLatitude;
+    float gpsLongitude;
+    float soilHealth;
+    float moistureLevel;
+    struct Crop *crops;
+    struct Equipment *equipment;
+    struct Sensor *sensors;
+};
+
+struct RegionalHub {
+    struct Field **fields;
+    int numFields;
+};
+
+struct CentralAnalytics {
+    struct RegionalHub *regionalHubs;
+    int numHubs;
+};
+
+int main() {
+    struct WeatherForecast *weather = malloc(sizeof(struct WeatherForecast));
+    weather->temperature = 25.5;
+    weather->rainfall = 50.0;
+    weather->windSpeed = 10.0;
+
+    struct Crop *crop = malloc(sizeof(struct Crop));
+    crop->expectedYield = 1000.0;
+    crop->weather = weather;
+
+    struct Equipment *equipment = malloc(sizeof(struct Equipment));
+    equipment->operationalStatus = 1;
+    equipment->fuelLevel = 75.0;
+
+    struct Sensor *sensor = malloc(sizeof(struct Sensor));
+    sensor->soilNutrients = 5.5;
+    sensor->pHLevel = 6.8;
+    sensor->pestActivity = 2;
+
+    struct Field *field = malloc(sizeof(struct Field));
+    field->gpsLatitude = 40.7128;
+    field->gpsLongitude = -74.0060;
+    field->soilHealth = 80.0;
+    field->moistureLevel = 20.0;
+    field->crops = crop;
+    field->equipment = equipment;
+    field->sensors = sensor;
+
+    struct RegionalHub *hub = malloc(sizeof(struct RegionalHub));
+    hub->fields = malloc(sizeof(struct Field*));
+    hub->fields[0] = field;
+    hub->numFields = 1;
+
+    struct CentralAnalytics *analytics = malloc(sizeof(struct CentralAnalytics));
+    analytics->regionalHubs = malloc(sizeof(struct RegionalHub*));
+    analytics->regionalHubs[0] = hub;
+    analytics->numHubs = 1;
+
+    printf("Field at Latitude: %.4f, Longitude: %.4f\n", field->gpsLatitude, field->gpsLongitude);
+    printf("Crop expected yield: %.2f\n", crop->expectedYield);
+    printf("Weather forecast - Temperature: %.2f°C, Rainfall: %.2f mm\n", weather->temperature, weather->rainfall);
+
+    free(weather);
+    free(crop);
+    free(equipment);
+    free(sensor);
+    free(field);
+    free(hub->fields);
+    free(hub);
+    free(analytics->regionalHubs);
+    free(analytics);
+
+    return 0;
+}
